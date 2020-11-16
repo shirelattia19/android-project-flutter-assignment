@@ -152,12 +152,11 @@ class _LoginPageState extends State<LoginPage> {
                           builder: (context) => Container(
                               alignment: Alignment.topCenter,
                               height: 170,
-                              width: MediaQuery.of(context).size.width,
+                              width: 1000,
                               child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.center,
                                   mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  mainAxisSize: MainAxisSize.min,
+                                      MainAxisAlignment.start,
                                   children: <Widget>[
                                     Padding(
                                       padding: const EdgeInsets.only(
@@ -167,18 +166,18 @@ class _LoginPageState extends State<LoginPage> {
                                           right: 50),
                                       child: Text(
                                         'Please confirm your password below:',
-                                        style: TextStyle(height: 2),
+                                        style: TextStyle(height: 3, fontSize: 13),
                                       ),
                                     ),
                                     Divider(
-                                      color: Colors.black,
+                                      color: Colors.grey,
                                     ),
                                     Padding(
                                       padding: const EdgeInsets.only(
-                                          top: 2,
+                                          top: 15,
                                           bottom: 2,
-                                          left: 50,
-                                          right: 50),
+                                          left: 20,
+                                          right: 20),
                                       child: Container(
                                         alignment: Alignment.topLeft,
                                         height: 25,
@@ -198,84 +197,67 @@ class _LoginPageState extends State<LoginPage> {
                                                     color: Colors.red)),
                                             labelText: 'Password',
                                             labelStyle: TextStyle(
-                                              color: Colors.black,
+                                              color: Colors.black, fontSize: 12
                                             ),
                                           ),
                                         ),
                                       ),
                                     ),
-                                    if (user.status == Status.Authenticating)
-                                      Container(
-                                        alignment: Alignment.bottomRight,
-                                        height: 40,
-                                        width: 120,
-                                        child: CircularProgressIndicator(),
-                                      )
-                                    else
-                                      Padding(
-                                          padding: const EdgeInsets.only(
-                                              top: 20,
-                                              bottom: 10,
-                                              left: 50,
-                                              right: 50),
-                                          child: Container(
-                                              alignment: Alignment.center,
-                                              height: 30,
-                                              width: 120,
-                                              decoration: BoxDecoration(
-                                                color: Colors.green[900],
-                                                borderRadius:
-                                                    BorderRadius.circular(0),
-                                              ),
-                                              child: FlatButton(
-                                                  child: Text('Confirm',
-                                                      style: TextStyle(
-                                                          fontSize: 15.0,
-                                                          color: Colors.white)),
-                                                  onPressed: () async {
-                                                    bool res = false;
-                                                    print('confirmed' +
-                                                        _confirmed_password);
-                                                    print(
-                                                        'password' + _password);
-                                                    if (_confirmed_password !=
-                                                        _password) {
-                                                      showAlertDialog(context,
-                                                          'Password must match');
+                                    Padding(
+                                        padding: const EdgeInsets.only(
+                                            top: 20,
+                                            bottom: 10,
+                                            left: 50,
+                                            right: 50),
+                                        child: Container(
+                                            alignment: Alignment.center,
+                                            height: 30,
+                                            width: 90,
+                                            decoration: BoxDecoration(
+                                              color: Colors.green[900],
+                                              borderRadius:
+                                                  BorderRadius.circular(0),
+                                            ),
+                                            child: FlatButton(
+                                                child: Text('Confirm',
+                                                    style: TextStyle(
+                                                        fontSize: 12.0,
+                                                        color: Colors.white)),
+                                                onPressed: () async {
+                                                  bool res = false;
+                                                  if (_confirmed_password !=
+                                                      _password) {
+                                                    showAlertDialog(context,
+                                                        'Password must match');
+                                                  } else {
+                                                    try {
+                                                      Navigator.of(context)
+                                                          .pop();
+                                                      res = await user.add_user(
+                                                          _email, _password);
+                                                    } catch (e) {
+                                                      _scaffoldKey.currentState
+                                                          .showSnackBar(
+                                                              SnackBar(
+                                                                  content:
+                                                                      Text(e)));
+                                                    }
+                                                    if (!res) {
+                                                      _scaffoldKey.currentState
+                                                          .showSnackBar(SnackBar(
+                                                              content: Text(
+                                                                  'There was an error logging into the app')));
                                                     } else {
-                                                      try {
-                                                        res =
-                                                            await user.add_user(
-                                                                _email,
-                                                                _password);
-                                                      } catch (e) {
-                                                        _scaffoldKey
-                                                            .currentState
-                                                            .showSnackBar(
-                                                                SnackBar(
-                                                                    content:
-                                                                        Text(
-                                                                            e)));
-                                                      }
-                                                      if (!res) {
-                                                        _scaffoldKey
-                                                            .currentState
-                                                            .showSnackBar(SnackBar(
-                                                                content: Text(
-                                                                    'There was an error logging into the app')));
-                                                      } else {
-                                                        print(user.status);
-                                                        if (user.status ==
-                                                            Status
-                                                                .Authenticated) {
-                                                          Navigator.of(context)
-                                                              .pop();
-                                                          Navigator.of(context)
-                                                              .pop();
-                                                        }
+                                                      print(user.status);
+                                                      if (user.status ==
+                                                          Status
+                                                              .Authenticated) {
+                                                        Navigator.of(context)
+                                                            .pop();
                                                       }
                                                     }
-                                                  })))
+                                                  }
+                                                })))
                                   ])),
                         );
                     },

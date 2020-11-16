@@ -74,8 +74,7 @@ class _RandomWordsState extends State<RandomWords> {
   SnappingSheetController controller = SnappingSheetController();
   double snapValue = 0.0;
   double blurValue = 0.0;
-  String profileURL = '';
-  PickedFile picture_picked;
+  String user_url = '';
   final firebase_store = FirebaseStorage.instance;
 
   @override
@@ -131,8 +130,9 @@ class _RandomWordsState extends State<RandomWords> {
       wp_saved.forEach((element) {
         _saved.add(element);
       });
-      auth_get_image(user);
+      auth_get_image(user.user);
       (context as Element).reassemble();
+      blurValue = 0;
     });
   }
 
@@ -334,34 +334,31 @@ class _RandomWordsState extends State<RandomWords> {
   Future<void> auth_add_image(String path, User user) async {
     File file = File(path);
     try {
-      await firebase_store.ref('${user.uid}/avatar.png')
-          .putFile(file);
+      await firebase_store.ref('${user.email}/avatar.png').putFile(file);
     } on FirebaseException catch (e) {
-      print(e);
       showAlertDialog(context, 'Picture upload Error, please try again');
     }
   }
 
   Future<void> auth_get_image(User user) async {
     try {
-      await firebase_store.ref('${user.uid}/avatar.png')
+      await firebase_store
+          .ref('${user.email}/avatar.png')
           .getDownloadURL()
           .then((value) {
         setState(() {
-          profileURL = value;
+          user_url = value;
           (context as Element).reassemble();
         });
       });
     } on FirebaseException catch (e) {
-      print(e);
       showAlertDialog(context, 'Picture download Error, please try again');
       setState(() {
-        profileURL = "";
+        user_url = "";
         (context as Element).reassemble();
       });
     }
   }
-
 
   Widget _SnapSheetProfil() {
     return Consumer<UserRepository>(builder: (context, user, _) {
@@ -374,11 +371,19 @@ class _RandomWordsState extends State<RandomWords> {
               snappingSheetController: controller,
               onSnapBegin: () {
                 setState(() {
-                  SnapPosition x = controller.snapPositions[0];
                   if (controller.currentSnapPosition.positionPixel == 0.0) {
                     blurValue = 0;
                   } else {
-                    blurValue = 4.0;
+                    blurValue = 3.0;
+                  }
+                });
+              },
+              onSnapEnd: () {
+                setState(() {
+                  if (controller.currentSnapPosition.positionPixel == 0.0) {
+                    blurValue = 0;
+                  } else {
+                    blurValue = 3.0;
                   }
                 });
               },
@@ -387,22 +392,22 @@ class _RandomWordsState extends State<RandomWords> {
                 SnapPosition(
                     positionPixel: 0,
                     snappingCurve: Curves.elasticIn,
-                    snappingDuration: Duration(milliseconds: 750)),
+                    snappingDuration: Duration(milliseconds: 200)),
                 SnapPosition(
                     positionPixel: 100,
                     snappingCurve: Curves.elasticOut,
-                    snappingDuration: Duration(milliseconds: 750)),
+                    snappingDuration: Duration(milliseconds: 200)),
               ],
               grabbingHeight: 50,
               grabbing: InkWell(
                   onTap: () {
                     setState(() {
                       if (controller.currentSnapPosition ==
-                          controller.snapPositions[0]) {
-                        controller.snapToPosition(controller.snapPositions[1]);
-                        blurValue = 4;
+                          controller.snapPositions.first) {
+                        controller.snapToPosition(controller.snapPositions.last);
+                        blurValue = 3.0;
                       } else {
-                        controller.snapToPosition(controller.snapPositions[0]);
+                        controller.snapToPosition(controller.snapPositions.first);
                         blurValue = 0;
                       }
                     });
@@ -417,56 +422,70 @@ class _RandomWordsState extends State<RandomWords> {
                               BorderSide(color: Colors.grey[300], width: 1.0))),
                   child: Row(
                       mainAxisAlignment: MainAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         Container(
-                          padding: EdgeInsets.fromLTRB(12, 0, 0, 0),
+                          padding: const EdgeInsets.only(
+                              top: 8,
+                              bottom: 12,
+                              left: 10,
+                              right: 10),
                           child: Material(
                             elevation: 5,
                             shape: CircleBorder(),
-                            child: profileURL == ""
+                            child: user_url == ""
                                 ? CircleAvatar(
                                     backgroundColor: Colors.black,
-                                    radius: 35,
+                                    radius: 30,
                                   )
                                 : CircleAvatar(
                                     backgroundImage:
-                                        NetworkImage(profileURL.toString()),
-                                    radius: 35),
+                                        NetworkImage(user_url.toString()),
+                                    radius: 30),
                           ),
                         ),
                         Wrap(children: [
                           Container(
-                              padding: EdgeInsets.fromLTRB(10, 10, 0, 0),
+                              padding: const EdgeInsets.only(
+                                  top: 10,
+                                  bottom: 15,
+                                  left: 5,
+                                  right: 5),
                               child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: <Widget>[
-                                Text(user.user.email,
-                                    style: TextStyle(fontSize: 17.0)),
-                                ButtonTheme(
-                                    minWidth: 25.0,
-                                    height: 20.0,
-                                    child: RaisedButton(
-                                      onPressed: () async {
-                                        var picture = await ImagePicker().getImage(source: ImageSource.gallery);
-                                        setState(() {
-                                          picture_picked = picture;
-                                        });
-                                        if (picture_picked == null) {
-                                          showAlertDialog(context, 'You have to select an image.');
-                                        } else {
-                                          await auth_add_image(
-                                              picture_picked.path, user.user);
-                                          await auth_get_image(user.user);
-                                        }
-                                      },
-                                      child: const Text('Change Avatar',
-                                          style: TextStyle(
-                                            fontSize: 12,
-                                            color: Colors.white,
-                                          )),
-                                      color: Colors.green[900],
-                                    )),
-                              ]))
+                                    Text(user.user.email,
+                                        style: TextStyle(fontSize: 17.0)),
+                                    ButtonTheme(
+                                        minWidth: 25.0,
+                                        height: 20.0,
+                                        child: RaisedButton(
+                                          onPressed: () async {
+                                            var picture = await ImagePicker()
+                                                .getImage(
+                                                    source:
+                                                        ImageSource.gallery);
+                                            setState(() {
+                                            });
+                                            if (picture == null) {
+                                              showAlertDialog(context,
+                                                  'You have to select an image.');
+                                            } else {
+                                              await auth_add_image(
+                                                  picture.path,
+                                                  user.user);
+                                              await auth_get_image(user.user);
+                                            }
+                                          },
+                                          child: const Text('Change Avatar',
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                color: Colors.white,
+                                              )),
+                                          color: Colors.green[900],
+                                        )),
+                                  ]))
                         ]),
                       ]),
                 ),

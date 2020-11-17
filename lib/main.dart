@@ -131,7 +131,6 @@ class _RandomWordsState extends State<RandomWords> {
         _saved.add(element);
       });
       auth_get_image(user.user);
-      (context as Element).reassemble();
       blurValue = 0;
     });
   }
@@ -196,8 +195,6 @@ class _RandomWordsState extends State<RandomWords> {
                                       match[1].toLowerCase());
                                   setState(() {
                                     _saved.forEach((element) {
-                                      print(element.first);
-                                      print(element.second);
                                     });
                                     _saved.remove(wp);
                                   });
@@ -335,7 +332,7 @@ class _RandomWordsState extends State<RandomWords> {
     File file = File(path);
     try {
       await firebase_store.ref('${user.email}/avatar.png').putFile(file);
-    } on FirebaseException catch (e) {
+    }catch (e) {
       showAlertDialog(context, 'Picture upload Error, please try again');
     }
   }
@@ -348,11 +345,9 @@ class _RandomWordsState extends State<RandomWords> {
           .then((value) {
         setState(() {
           user_url = value;
-          (context as Element).reassemble();
         });
       });
-    } on FirebaseException catch (e) {
-      showAlertDialog(context, 'Picture download Error, please try again');
+    }catch (e) {
       setState(() {
         user_url = "";
         (context as Element).reassemble();

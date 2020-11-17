@@ -231,10 +231,11 @@ class _LoginPageState extends State<LoginPage> {
                                                         'Password must match');
                                                   } else {
                                                     try {
-                                                      Navigator.of(context)
-                                                          .pop();
+
                                                       res = await user.add_user(
                                                           _email, _password);
+                                                      Navigator.of(context)
+                                                          .pop();
                                                     } catch (e) {
                                                       _scaffoldKey.currentState
                                                           .showSnackBar(
@@ -248,7 +249,6 @@ class _LoginPageState extends State<LoginPage> {
                                                               content: Text(
                                                                   'There was an error logging into the app')));
                                                     } else {
-                                                      print(user.status);
                                                       if (user.status ==
                                                           Status
                                                               .Authenticated) {

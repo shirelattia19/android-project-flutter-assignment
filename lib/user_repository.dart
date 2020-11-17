@@ -32,9 +32,7 @@ class UserRepository with ChangeNotifier {
     try {
       _status = Status.Authenticating;
       notifyListeners();
-      print('got here');
       await _auth.signInWithEmailAndPassword(email: email, password: password);
-      print('sign in succeded');
       return true;
     } catch (e) {
       _status = Status.Unauthenticated;
